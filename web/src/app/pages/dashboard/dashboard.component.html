@@ -1,0 +1,77 @@
+<div class="page">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Ledgerly</p>
+      <h1>Tus gastos</h1>
+      <p class="muted" *ngIf="auth.user() as u">{{ u.email }}</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="ghost" (click)="linkTelegram()">Enlazar Telegram</button>
+      <button type="button" class="ghost" (click)="auth.logout()">Salir</button>
+    </div>
+  </header>
+
+  <p class="banner" *ngIf="linkCode() as code">
+    En Telegram: <strong>/start {{ code }}</strong> (válido ~15 min)
+  </p>
+  <p class="error" *ngIf="error()">{{ error() }}</p>
+
+  <section class="grid">
+    <article class="card summary" *ngIf="summary() as s">
+      <h2>{{ s.month }}/{{ s.year }}</h2>
+      <p class="total">{{ s.total | currency: 'EUR' }}</p>
+      <p class="muted">{{ s.count }} movimientos</p>
+      <div class="bars">
+        <div class="bar-row" *ngFor="let row of s.by_category">
+          <span>{{ labels[row.category] || row.category }}</span>
+          <div class="track"><div class="fill" [style.width]="barWidth(row.total)"></div></div>
+          <strong>{{ row.total | currency: 'EUR' }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>Nuevo gasto</h2>
+      <form [formGroup]="form" (ngSubmit)="add()" class="form">
+        <label>
+          Importe
+          <input type="number" step="0.01" min="0.01" formControlName="amount" />
+        </label>
+        <label>
+          Categoría
+          <select formControlName="category">
+            <option *ngFor="let c of categories" [value]="c">{{ labels[c] }}</option>
+          </select>
+        </label>
+        <label>
+          Fecha
+          <input type="date" formControlName="spent_at" />
+        </label>
+        <label>
+          Nota
+          <input type="text" formControlName="note" placeholder="café, metro..." />
+        </label>
+        <button type="submit">Añadir</button>
+      </form>
+    </article>
+  </section>
+
+  <section class="card list">
+    <h2>Últimos gastos</h2>
+    <div class="row head">
+      <span>Fecha</span>
+      <span>Cat.</span>
+      <span>Nota</span>
+      <span>Importe</span>
+      <span></span>
+    </div>
+    <div class="row" *ngFor="let e of expenses()">
+      <span>{{ e.spent_at | date: 'dd/MM' }}</span>
+      <span>{{ labels[e.category] || e.category }}</span>
+      <span>{{ e.note || '—' }}</span>
+      <strong>{{ e.amount | currency: 'EUR' }}</strong>
+      <button type="button" class="tiny" (click)="remove(e.id)">×</button>
+    </div>
+    <p class="muted" *ngIf="!expenses().length">Todavía no hay gastos. Prueba la web o el bot.</p>
+  </section>
+</div>
