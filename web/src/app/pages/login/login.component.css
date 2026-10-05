@@ -86,3 +86,8 @@ button[type='submit']:disabled {
   color: #9b2226;
   font-size: 0.9rem;
 }
+
+.hint {
+  color: #9b2226;
+  font-size: 0.8rem;
+}

@@ -33,6 +33,7 @@ export class LoginComponent {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.error = this.validationMessage();
       return;
     }
     this.loading = true;
@@ -46,8 +47,36 @@ export class LoginComponent {
       },
       error: (err) => {
         this.loading = false;
-        this.error = err?.error?.detail || 'No se pudo autenticar';
+        this.error = this.formatHttpError(err);
       },
     });
+  }
+
+  private validationMessage(): string {
+    const email = this.form.controls.email;
+    const password = this.form.controls.password;
+    if (email.hasError('required')) return 'El email es obligatorio';
+    if (email.hasError('email')) return 'Email no válido';
+    if (password.hasError('required')) return 'La contraseña es obligatoria';
+    if (password.hasError('minlength')) return 'La contraseña debe tener al menos 8 caracteres';
+    return 'Revisa el formulario';
+  }
+
+  private formatHttpError(err: unknown): string {
+    const detail = (err as { error?: { detail?: unknown } })?.error?.detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      return detail
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object' && 'msg' in item) {
+            return String((item as { msg: string }).msg);
+          }
+          return JSON.stringify(item);
+        })
+        .join(' · ');
+    }
+    if (detail != null) return String(detail);
+    return 'No se pudo autenticar. ¿Está la API en :8000?';
   }
 }
